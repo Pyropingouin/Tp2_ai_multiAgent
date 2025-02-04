@@ -79,15 +79,15 @@ class ReflexAgent(Agent):
         tempoScore = successorGameState.getScore()
 
      
-        if capsulePositions:  # Vérifier qu'il y a des capsules
+        if capsulePositions:  
             capsuleDistances = [manhattanDistance(newPos, capsule) for capsule in capsulePositions]
-            closestCapsuleDistance = min(capsuleDistances)  # Distance à la capsule la plus proche
+            closestCapsuleDistance = min(capsuleDistances)  
 
             tempoScore += 90 / (1 + closestCapsuleDistance)
        
 
         ghostDistances = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
-        if ghostDistances:  # Vérifie que la liste n'est pas vide avant d'utiliser min()
+        if ghostDistances: 
             closestGhostDistance = min(ghostDistances)
             if any(time > 0 for time in newScaredTimes):
                  tempoScore += 100000
@@ -96,10 +96,10 @@ class ReflexAgent(Agent):
                 tempoScore -= 100 / (1 + closestGhostDistance)
 
 
-        # Récupère la liste des positions de la nourriture
+        
         foodPositions = newFood.asList()
 
-        # Si de la nourriture existe, trouve la distance la plus proche
+    
         if foodPositions:
             closestFoodDistance = min([manhattanDistance(newPos, foodPos) for foodPos in foodPositions])
             tempoScore += 10 / (1 + closestFoodDistance)
@@ -352,7 +352,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 bestScore = score
                 bestAction = action    
 
-        return bestScore, bestAction    
+        return bestScore, bestAction if bestAction is not None else None 
 
     
     def expectValue(self, gameState, depth, ghostIndex):
@@ -388,7 +388,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 
 
-        expectedScore = totalScore * probability  # Moyenne pondérée 
+        expectedScore = totalScore * probability  
 
         return expectedScore, None 
         
@@ -397,14 +397,58 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 
 def betterEvaluationFunction(currentGameState):
+
+
+
+    
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: <Je n'ai pas réussi à rendre mon PacMan assez rapide. Par contre, il est presque toujours (9/10) victorieux. 
+    Je me suis basé sur la fonction d'évaluation écrit au début et j'ai ajouter des condtions pour la distance du fantôme.>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+ 
+
+  
+    pacmanPos = currentGameState.getPacmanPosition()
+    foodGrid = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+    capsulePositions = currentGameState.getCapsules()
+
+  
+    score = currentGameState.getScore()
+
+   
+    for ghost in ghostStates:
+        ghostPos = ghost.getPosition()
+        distance = manhattanDistance(pacmanPos, ghostPos)
+
+        if ghost.scaredTimer > 0:  
+            score += 500 / (1 + distance)  
+        else:  
+            if distance < 3:  
+                score -= 1500 / (1 + distance) 
+            else:
+                score -= 300 / (1 + distance)  
+
+   
+    foodList = foodGrid.asList()
+    if foodList:
+        closestFoodDistance = min(manhattanDistance(pacmanPos, food) for food in foodList)
+        score += 300 / (1 + closestFoodDistance)  
+
+ 
+    if capsulePositions:
+        closestCapsuleDistance = min(manhattanDistance(pacmanPos, capsule) for capsule in capsulePositions)
+        score += 500 / (1 + closestCapsuleDistance) 
+
+
+    score -= 15 * len(foodList) 
+    score -= 50 * len(capsulePositions)  
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
