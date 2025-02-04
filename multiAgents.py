@@ -326,7 +326,75 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        _, action = self.maxValue(gameState, depth=0)
+    
+        return action
+
+
+    def maxValue(self, gameState, depth):
+
+        if gameState.isWin():
+            return self.evaluationFunction(gameState), None       
+        if gameState.isLose():
+            return self.evaluationFunction(gameState), None       
+        if depth == self.depth:
+            return self.evaluationFunction(gameState), None       
+        
+
+        bestScore = float("-inf")
+        bestAction = None
+
+        for action in gameState.getLegalActions(0):
+            successor = gameState.generateSuccessor(0,action)
+            score, _ = self.expectValue(successor, depth, 1)
+
+            if score > bestScore:
+                bestScore = score
+                bestAction = action    
+
+        return bestScore, bestAction    
+
+    
+    def expectValue(self, gameState, depth, ghostIndex):
+        
+
+        if gameState.isWin():
+            return self.evaluationFunction(gameState), None       
+        if gameState.isLose():
+            return self.evaluationFunction(gameState), None       
+        if depth == self.depth:
+            return self.evaluationFunction(gameState), None          
+        
+
+        legalActions = gameState.getLegalActions(ghostIndex)
+        if not legalActions:
+            return self.evaluationFunction(gameState), None
+        
+
+        totalScore = 0
+        probability = 1.0 / len(legalActions)
+       
+
+        for action in gameState.getLegalActions(ghostIndex):
+            successor = gameState.generateSuccessor(ghostIndex,action)
+           
+            if ghostIndex == gameState.getNumAgents() - 1:
+                score, _ = self.maxValue(successor, depth + 1)
+
+            else:
+                score, _ = self.expectValue(successor, depth, ghostIndex + 1)
+
+            totalScore += score
+
+
+
+        expectedScore = totalScore * probability  # Moyenne pondérée 
+
+        return expectedScore, None 
+        
+
+
+
 
 def betterEvaluationFunction(currentGameState):
     """
