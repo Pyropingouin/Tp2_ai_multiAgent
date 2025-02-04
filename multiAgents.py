@@ -72,37 +72,37 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-        capsule_positions = successorGameState.getCapsules()
+        capsulePositions = successorGameState.getCapsules()
 
 
 
         tempoScore = successorGameState.getScore()
 
      
-        if capsule_positions:  # Vérifier qu'il y a des capsules
-            capsule_distances = [manhattanDistance(newPos, capsule) for capsule in capsule_positions]
-            closest_capsule_distance = min(capsule_distances)  # Distance à la capsule la plus proche
+        if capsulePositions:  # Vérifier qu'il y a des capsules
+            capsuleDistances = [manhattanDistance(newPos, capsule) for capsule in capsulePositions]
+            closestCapsuleDistance = min(capsuleDistances)  # Distance à la capsule la plus proche
 
-            tempoScore += 90 / (1 + closest_capsule_distance)
+            tempoScore += 90 / (1 + closestCapsuleDistance)
        
 
-        ghost_distances = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
-        if ghost_distances:  # Vérifie que la liste n'est pas vide avant d'utiliser min()
-            closest_ghost_distance = min(ghost_distances)
+        ghostDistances = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
+        if ghostDistances:  # Vérifie que la liste n'est pas vide avant d'utiliser min()
+            closestGhostDistance = min(ghostDistances)
             if any(time > 0 for time in newScaredTimes):
                  tempoScore += 100000
 
             else:     
-                tempoScore -= 100 / (1 + closest_ghost_distance)
+                tempoScore -= 100 / (1 + closestGhostDistance)
 
 
         # Récupère la liste des positions de la nourriture
-        food_positions = newFood.asList()
+        foodPositions = newFood.asList()
 
         # Si de la nourriture existe, trouve la distance la plus proche
-        if food_positions:
-            closest_food_distance = min([manhattanDistance(newPos, food_pos) for food_pos in food_positions])
-            tempoScore += 10 / (1 + closest_food_distance)
+        if foodPositions:
+            closestFoodDistance = min([manhattanDistance(newPos, foodPos) for foodPos in foodPositions])
+            tempoScore += 10 / (1 + closestFoodDistance)
             
             
         
@@ -169,7 +169,70 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+       
+        _, action = self.maxValue(gameState, depth=0)
+    
+        return action
+
+
+    def maxValue(self, gameState, depth):
+
+        if gameState.isWin():
+            return self.evaluationFunction(gameState), None       
+        if gameState.isLose():
+            return self.evaluationFunction(gameState), None       
+        if depth == self.depth:
+            return self.evaluationFunction(gameState), None       
+        
+
+        bestScore = -1000000
+        bestAction = None
+
+        for action in gameState.getLegalActions(0):
+            successor = gameState.generateSuccessor(0,action)
+            score, _ = self.minValue(successor, depth, 1)
+
+            if score > bestScore:
+                bestScore = score
+                bestAction = action    
+
+        return bestScore, bestAction    
+
+    
+
+    def minValue(self, gameState, depth, ghostIndex):
+        
+
+        if gameState.isWin():
+            return self.evaluationFunction(gameState), None       
+        if gameState.isLose():
+            return self.evaluationFunction(gameState), None       
+        if depth == self.depth:
+            return self.evaluationFunction(gameState), None          
+        
+        
+
+        bestScore = 1000000
+        bestAction = None
+
+        for action in gameState.getLegalActions(ghostIndex):
+            successor = gameState.generateSuccessor(ghostIndex,action)
+           
+            if ghostIndex == gameState.getNumAgents() - 1:
+                score, _ = self.maxValue(successor, depth + 1)
+
+            else:
+                score, _ = self.minValue(successor, depth, ghostIndex + 1)
+
+            if score < bestScore:
+                bestScore = score
+                bestAction = action    
+
+        return bestScore, bestAction    
+        
+
+
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
