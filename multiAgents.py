@@ -72,9 +72,43 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        capsule_positions = successorGameState.getCapsules()
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+
+
+        tempoScore = successorGameState.getScore()
+
+     
+        if capsule_positions:  # Vérifier qu'il y a des capsules
+            capsule_distances = [manhattanDistance(newPos, capsule) for capsule in capsule_positions]
+            closest_capsule_distance = min(capsule_distances)  # Distance à la capsule la plus proche
+
+            tempoScore += 90 / (1 + closest_capsule_distance)
+       
+
+        ghost_distances = [manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates]
+        if ghost_distances:  # Vérifie que la liste n'est pas vide avant d'utiliser min()
+            closest_ghost_distance = min(ghost_distances)
+            if any(time > 0 for time in newScaredTimes):
+                 tempoScore += 100000
+
+            else:     
+                tempoScore -= 100 / (1 + closest_ghost_distance)
+
+
+        # Récupère la liste des positions de la nourriture
+        food_positions = newFood.asList()
+
+        # Si de la nourriture existe, trouve la distance la plus proche
+        if food_positions:
+            closest_food_distance = min([manhattanDistance(newPos, food_pos) for food_pos in food_positions])
+            tempoScore += 10 / (1 + closest_food_distance)
+            
+            
+        
+        
+
+        return tempoScore
 
 def scoreEvaluationFunction(currentGameState):
     """
